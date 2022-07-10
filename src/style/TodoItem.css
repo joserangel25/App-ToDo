@@ -19,10 +19,10 @@
     margin-top: 6px;
 }
 .icon-container {
-    width: 120px;
+    width: 80px;
     height: 40px;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     /* border: 1px solid var(--background); */
 }
 

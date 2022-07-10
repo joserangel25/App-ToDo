@@ -1,137 +1,111 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useContext } from 'react'
+import { taskContext } from './components/context/TaskContext';
 import Search from './components/Search';
 import TodoCabecera from './components/TodoCabecera';
 import TodoContainer from './components/TodoContainer';
 import TodoItem from './components/TodoItem';
 import NuevaTarea from './components/NuevaTarea';
-import { useLocalStorage } from './hooks/useLocalStorage';
+// import { Ejemplo } from './components/Ejemplo';
+import { Modal } from './components/modal/Modal';
+import { FormTodo } from './components/FormTodo/FormTodo';
+import { Loader } from './components/Loader/Loader';
+
 import './App.css'
-
-
-/*
-function useLocalStorage (itemName, initialValue ) {
-  
-  //Utilizando localStorage
-  
-  const localStorageItem = localStorage.getItem(itemName);
-  let parsedItem;
-  
-  if(!localStorageItem) {
-    localStorage.setItem(itemName, JSON.stringify(initialValue));
-    parsedItem = [];
-  } else {
-    parsedItem = JSON.parse(localStorageItem);
-  }
-  
-  const [item, setItem] = useState(parsedItem);
-
-    //Persistiendo los datos con localStorage
-
-    const saveItem = (newItem) => {
-      const itemStringify = JSON.stringify(newItem);
-      localStorage.setItem(itemName, itemStringify);
-      setItem(newItem); 
-    }
-    return [
-      item,
-      saveItem,
-    ];
-}
-*/
-
-
 
 function App() {
 
- 
-  const {
-    item: todos,
-    setValue: saveTodos,
-    loading,
-    error,
-  } = useLocalStorage('TODOS_V1', []);
-  
-
-  //Lista de tareas del TODOs con su Set
- 
-  const todosCompletados = todos.filter(todo => todo.estado === true).length;
-  const todosTotal = todos.length;  
-
-  const completeTodo = (tarea) => {
-    const todoIndex = todos.findIndex(todo => todo.tarea === tarea);
-    const newTodos = [...todos];
-    newTodos[todoIndex].estado = true;
-    saveTodos(newTodos);
-  }
-
-  
-
-  //Editando el estado de la lista por si hubo un error
-  const editTodo = (tarea) => {
-    const todoIndex = todos.findIndex(todo => todo.tarea === tarea);
-    const newTodos = [...todos];
-    newTodos[todoIndex].estado = false;
-    saveTodos(newTodos);
-  }
-
-  //Eliminar un elemento cuando se completa la tarea
-
-  const deleteTodo = (tarea) => {
-    console.log("ejecutando deleteTodo")
-    const todoIndex= todos.findIndex(todo => todo.tarea === tarea);
-    const newTodos = [...todos];
-    newTodos.splice(todoIndex, 1);
-    saveTodos(newTodos)
-  }
-
-  //Filtrando a través del input search
-  const [searchValue, setSearchValue] = useState("");
-
-  let filtradoTodos = [];
-
-  if(!searchValue >= 1){
-    filtradoTodos = todos;
-  } else {
-    filtradoTodos = todos.filter(todo => {
-      const todoText = todo.tarea.toLowerCase();
-      const searchText= searchValue.toLowerCase();      
-      return todoText.includes(searchText);
-    });
-  } 
+  const value = useContext(taskContext);
 
   return (
     <div className="App">
       <header className="App-header">
         
-      </header>
       <main>
-        <TodoCabecera usserName="Jose" todosTotal={todosTotal} todosCompletados={todosCompletados}/>
+          
+        <>
+        <TodoCabecera 
+          usserName={undefined}
+          todosTotal={value.todosTotal} 
+          todosCompletados={value.todosCompletados}
+        />
 
-        {/* Componente para realizar los filtros o busquedas */}
-        <Search searchValue={searchValue} setSearchValue={setSearchValue}/>
-
-        {/* Cuerpo de la lista de los TODOs  */}
         <TodoContainer>
-          {error && <p>Desesperate, hubo un error...</p>}
-          {loading && <p>Estamos cargando, no desesperes...</p>}
-          {(!loading && !filtradoTodos.length) && <p>Crea tu primer TODO</p>}
-          {filtradoTodos.map(todo => (
-            <TodoItem 
-                key={todo.id} 
-                tarea={todo.tarea} 
-                fecha={todo.fecha} 
-                todoEstado={todo.estado}
-                onComplete={()=> completeTodo(todo.tarea)}
-                onDelete={()=> deleteTodo(todo.tarea)}
-                onEdit={()=> editTodo(todo.tarea)}
-            />))}
-        </TodoContainer>
+        
+          {/* {value.error && <p>Desesperate, hubo un error...</p>} */}
+          {value.loading && <Loader />}
+          {(!value.loading && !value.todos.length) && <p>Crea tu primer ToDO</p>}
+          {(!value.loading && value.todos.length) && <Search 
+                                                        searchValue={value.searchValue} 
+                                                        setSearchValue={value.setSearchValue}
+                                                        />}
+          {/* {(!value.filtradoTodos.length) && <p>No hay coincidencias</p>} */}
 
-        {/* Boton para agregar nueva tarea y desplegar modal */}
-        <NuevaTarea />
+          {value.filtradoTodos.map(todo => (
+                    <TodoItem 
+                    key={todo.id} 
+                    todo={todo}
+                    />))}
+
+          {/* {value.todos.map(todo => (
+          <TodoItem 
+            key={todo.id} 
+            todo={todo}
+          />))} */}
+          
+        </TodoContainer>
+      </>
+      
+      {
+        value.showModal && (
+          <Modal>
+            <FormTodo />
+          </Modal>
+        )
+      }
+
+      <NuevaTarea setShowModal={value.setShowModal}/>
+          
       </main>
+      </header>
     </div>
   )
 }
 
 export default App
+
+
+/*
+Cuerpo de la lista de los TODOs 
+          <TodoContext.Consumer>
+            {(value) => {
+              console.log(value)
+              return (
+                <>
+
+                  <TodoCabecera usserName="Jose" todosTotal={value.todosTotal} todosCompletados={value.todosCompletados}/>
+
+                  Componente para realizar los filtros o busquedas
+                  <Search searchValue={value.searchValue} setSearchValue={value.setSearchValue}/>
+                  <TodoContainer>
+                    {value.error && <p>Desesperate, hubo un error...</p>}
+                    {value.loading && <p>Estamos cargando, no desesperes...</p>}
+                    {(!value.loading && !value.filtradoTodos.length) && <p>Crea tu primer TODO</p>}
+                    {value.filtradoTodos.map(todo => (
+                    <TodoItem 
+                    key={todo.id} 
+                    tarea={todo.tarea} 
+                    fecha={todo.fecha} 
+                    todoEstado={todo.estado}
+                    completeTodo={()=> completeTodo(todo.tarea)}
+                    deleteTodo={()=> deleteTodo(todo.tarea)}
+                    editTodo={()=> editTodo(todo.tarea)}
+                    />))}
+                  </TodoContainer>
+                  
+                </>
+            )}}
+          </TodoContext.Consumer>
+
+          Boton para agregar nueva tarea y desplegar modal
+          <NuevaTarea />
+*/

@@ -1,11 +1,11 @@
 import React from 'react'
 import '../style/NuevaTarea.css'
 
-const showModal = () => {
-    alert('Aquí se mostrará pronto el modal')
-}
 
-const NuevaTarea = () => {
+const NuevaTarea = ({setShowModal}) => {
+    const showModal = () => {
+        setShowModal(true)
+    }
     return (        
             <div className='add-tarea' onClick={showModal}>
                 <p>+</p>
